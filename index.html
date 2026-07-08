@@ -2243,8 +2243,9 @@ render();
   import {
     getAuth,
     GoogleAuthProvider,
-    signInWithPopup,
-    onAuthStateChanged
+    signInWithRedirect,
+    onAuthStateChanged,
+    getRedirectResult
   } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -2263,6 +2264,16 @@ render();
   //Auth Google
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
+
+  getRedirectResult(auth)
+  .then((result) => {
+    if (result && result.user) {
+      console.log("Login completato:", result.user.email);
+    }
+  })
+  .catch((error) => {
+    console.error("Errore login:", error);
+  });
   
   // Condividiamo il database con il tuo vecchio script usando "window.db"
   const db = getFirestore(app);
@@ -2275,7 +2286,7 @@ render();
     if (user) {
       console.log("Utente autenticato:", user.email);
     } else {
-      signInWithPopup(auth, provider);
+      signInWithRedirect(auth, provider);
     }
   });
   
