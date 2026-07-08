@@ -2269,18 +2269,17 @@ render();
   const provider = new GoogleAuthProvider();
 
 
-  await auth.authStateReady();
-
-
-  if (!auth.currentUser) {
-    await signInWithRedirect(auth, provider);
-  }
-
-
   onAuthStateChanged(auth, (user) => {
+
     if (user) {
       console.log("Utente autenticato:", user.email);
+    } 
+    
+    else {
+      console.log("Nessun utente, avvio login...");
+      signInWithRedirect(auth, provider);
     }
+  
   });
 
 
