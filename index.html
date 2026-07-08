@@ -2307,6 +2307,15 @@ render();
 
   });
 
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    '<button id="firebase-login" style="position:fixed;bottom:20px;right:20px;z-index:9999">Login Google</button>'
+  );
+  
+  document.getElementById("firebase-login").onclick = () => {
+    signInWithRedirect(auth, provider);
+  };
+
 
   // Firestore
   const db = getFirestore(app);
