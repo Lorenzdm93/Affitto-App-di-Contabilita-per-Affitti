@@ -2232,6 +2232,7 @@ render();
 
 <script type="module">
 
+  // Firebase imports
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
   import { 
@@ -2245,7 +2246,10 @@ render();
     getAuth,
     GoogleAuthProvider,
     signInWithRedirect,
-    onAuthStateChanged
+    onAuthStateChanged,
+    getRedirectResult,
+    setPersistence,
+    browserLocalPersistence
   } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 
@@ -2260,45 +2264,77 @@ render();
   };
 
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
 
   console.log("Firebase è collegato con successo!");
 
 
+  // Authentication
   const auth = getAuth(app);
+
+  await setPersistence(auth, browserLocalPersistence);
+
   const provider = new GoogleAuthProvider();
 
+  provider.setCustomParameters({
+    prompt: "select_account"
+  });
 
+
+  // Check result after Google redirect
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result && result.user) {
+        console.log("Login completato:", result.user.email);
+      } else {
+        console.log("Nessun redirect login trovato");
+      }
+    })
+    .catch((error) => {
+      console.error("Errore Google login:", error);
+    });
+
+
+  // Current authentication state
   onAuthStateChanged(auth, (user) => {
 
     if (user) {
       console.log("Utente autenticato:", user.email);
-    } 
-    
-    else {
-      console.log("Nessun utente, avvio login...");
-      signInWithRedirect(auth, provider);
+    } else {
+      console.log("Nessun utente autenticato");
     }
-  
+
   });
 
 
+  // Firestore
   const db = getFirestore(app);
 
   const casaId = "principale";
 
 
+  // Local -> Firebase
   AFFITTO.onChange(async (state) => {
+
+    if (!auth.currentUser) {
+      console.log("Non autenticato: non salvo su Firebase");
+      return;
+    }
+
     await setDoc(
       doc(db, "case", casaId),
       state
     );
+
   });
 
 
+  // Firebase -> Local
   onSnapshot(
     doc(db, "case", casaId),
     (snap) => {
+
       const remote = snap.data();
 
       if (
@@ -2307,13 +2343,15 @@ render();
       ) {
         AFFITTO.applyRemote(remote);
       }
+
     }
   );
 
 
   console.log("Sincronizzazione Firebase attiva!");
 
-</script>
 
+</script>
+  
 </body>
 </html>
