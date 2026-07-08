@@ -2233,13 +2233,14 @@ render();
 <script type="module">
   // Importiamo Firebase dai server Google (CDN)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+
   import { 
     getFirestore, 
     doc, 
     setDoc, 
     onSnapshot 
   } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-  
+
   import {
     getAuth,
     GoogleAuthProvider,
@@ -2247,6 +2248,7 @@ render();
     onAuthStateChanged,
     getRedirectResult
   } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
 
   const firebaseConfig = {
     apiKey: "AIzaSyD_bSp8vBCWq772iw8vSArRRPCE8-ftZxg",
@@ -2258,63 +2260,61 @@ render();
     measurementId: "G-RP1QH396F6"
   };
 
-  // Inizializziamo Firebase
+
+  // Inizializza Firebase
   const app = initializeApp(firebaseConfig);
-
-  //Auth Google
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  getRedirectResult(auth)
-  .then((result) => {
-    if (result && result.user) {
-      console.log("Login completato:", result.user.email);
-    }
-  })
-  .catch((error) => {
-    console.error("Errore login:", error);
-  });
-  
-  // Condividiamo il database con il tuo vecchio script usando "window.db"
-  const db = getFirestore(app);
 
   console.log("Firebase è collegato con successo!");
 
-  const casaId = "principale";
 
+  // Authentication
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+
+  // Recupera eventuale login Google appena completato
   getRedirectResult(auth)
-  .then((result) => {
-    if (result && result.user) {
-      console.log("Login completato:", result.user.email);
-    }
-  })
-  .catch((error) => {
-    console.error("Errore login:", error);
-  });
+    .then((result) => {
+      if (result && result.user) {
+        console.log("Login completato:", result.user.email);
+      }
+    })
+    .catch((error) => {
+      console.error("Errore login:", error);
+    });
 
 
+  // Controllo stato utente
   onAuthStateChanged(auth, (user) => {
     if (user) {
       console.log("Utente autenticato:", user.email);
     } else {
-      setTimeout(() => {
-        signInWithRedirect(auth, provider);
-      }, 1000);
+      console.log("Nessun utente autenticato");
     }
   });
-  
+
+
+  // Firestore
+  const db = getFirestore(app);
+
+  const casaId = "principale";
+
+
+  // Scrittura locale -> Firebase
   AFFITTO.onChange(async (state) => {
     await setDoc(
       doc(db, "case", casaId),
       state
     );
   });
-  
+
+
+  // Lettura Firebase -> locale
   onSnapshot(
     doc(db, "case", casaId),
     (snap) => {
       const remote = snap.data();
-  
+
       if (
         remote &&
         remote.updatedAt !== AFFITTO.getState().updatedAt
@@ -2324,7 +2324,9 @@ render();
     }
   );
 
+
   console.log("Sincronizzazione Firebase attiva!");
+
 </script>
   
 </body>
