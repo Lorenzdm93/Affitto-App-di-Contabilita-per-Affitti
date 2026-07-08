@@ -2231,9 +2231,7 @@ render();
 </script>
 
 <script type="module">
-(async () => {
 
-  // Importiamo Firebase dai server Google (CDN)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
   import { 
@@ -2262,28 +2260,23 @@ render();
   };
 
 
-  // Inizializza Firebase
   const app = initializeApp(firebaseConfig);
 
   console.log("Firebase è collegato con successo!");
 
 
-  // Authentication
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
 
-  // Aspetta che Firebase abbia recuperato eventuale sessione esistente
   await auth.authStateReady();
 
 
-  // Se non esiste un utente, manda a Google Login
   if (!auth.currentUser) {
     await signInWithRedirect(auth, provider);
   }
 
 
-  // Stato utente
   onAuthStateChanged(auth, (user) => {
     if (user) {
       console.log("Utente autenticato:", user.email);
@@ -2291,13 +2284,11 @@ render();
   });
 
 
-  // Firestore
   const db = getFirestore(app);
 
   const casaId = "principale";
 
 
-  // Locale -> Firebase
   AFFITTO.onChange(async (state) => {
     await setDoc(
       doc(db, "case", casaId),
@@ -2306,7 +2297,6 @@ render();
   });
 
 
-  // Firebase -> Locale
   onSnapshot(
     doc(db, "case", casaId),
     (snap) => {
@@ -2324,9 +2314,7 @@ render();
 
   console.log("Sincronizzazione Firebase attiva!");
 
-})();
 </script>
 
-  
 </body>
 </html>
