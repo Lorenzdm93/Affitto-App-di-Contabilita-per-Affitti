@@ -2239,6 +2239,12 @@ render();
     setDoc, 
     onSnapshot 
   } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup
+  } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyD_bSp8vBCWq772iw8vSArRRPCE8-ftZxg",
@@ -2252,6 +2258,10 @@ render();
 
   // Inizializziamo Firebase
   const app = initializeApp(firebaseConfig);
+
+  //Auth Google
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
   
   // Condividiamo il database con il tuo vecchio script usando "window.db"
   const db = getFirestore(app);
@@ -2260,6 +2270,14 @@ render();
 
   const casaId = "principale";
 
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log("Utente autenticato:", user.email);
+    } else {
+      signInWithPopup(auth, provider);
+    }
+  });
+  
   AFFITTO.onChange(async (state) => {
     await setDoc(
       doc(db, "case", casaId),
