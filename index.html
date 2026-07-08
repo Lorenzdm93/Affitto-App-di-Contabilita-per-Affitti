@@ -2229,5 +2229,30 @@ function renderGestione(){
 autoFreezePastMonths();
 render();
 </script>
+
+<script type="module">
+  // Importiamo Firebase dai server Google (CDN)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD_bSp8vBCWq772iw8vSArRRPCE8-ftZxg",
+    authDomain: "affitto-3a73e.firebaseapp.com",
+    projectId: "affitto-3a73e",
+    storageBucket: "affitto-3a73e.firebasestorage.app",
+    messagingSenderId: "870051321714",
+    appId: "1:870051321714:web:f370f2ad9f3a9db419afeb",
+    measurementId: "G-RP1QH396F6"
+  };
+
+  // Inizializziamo Firebase
+  const app = initializeApp(firebaseConfig);
+  
+  // Condividiamo il database con il tuo vecchio script usando "window.db"
+  window.db = getFirestore(app);
+
+  console.log("Firebase è collegato con successo!");
+</script>
+  
 </body>
 </html>
