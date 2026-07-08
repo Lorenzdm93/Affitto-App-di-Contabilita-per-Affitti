@@ -2282,11 +2282,24 @@ render();
 
   const casaId = "principale";
 
+  getRedirectResult(auth)
+  .then((result) => {
+    if (result && result.user) {
+      console.log("Login completato:", result.user.email);
+    }
+  })
+  .catch((error) => {
+    console.error("Errore login:", error);
+  });
+
+
   onAuthStateChanged(auth, (user) => {
     if (user) {
       console.log("Utente autenticato:", user.email);
     } else {
-      signInWithRedirect(auth, provider);
+      setTimeout(() => {
+        signInWithRedirect(auth, provider);
+      }, 1000);
     }
   });
   
