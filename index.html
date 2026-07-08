@@ -2233,7 +2233,12 @@ render();
 <script type="module">
   // Importiamo Firebase dai server Google (CDN)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  import { 
+    getFirestore, 
+    doc, 
+    setDoc, 
+    onSnapshot 
+  } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyD_bSp8vBCWq772iw8vSArRRPCE8-ftZxg",
@@ -2249,9 +2254,34 @@ render();
   const app = initializeApp(firebaseConfig);
   
   // Condividiamo il database con il tuo vecchio script usando "window.db"
-  window.db = getFirestore(app);
+  const db = getFirestore(app);
 
   console.log("Firebase è collegato con successo!");
+
+  const casaId = "principale";
+
+  AFFITTO.onChange(async (state) => {
+    await setDoc(
+      doc(db, "case", casaId),
+      state
+    );
+  });
+  
+  onSnapshot(
+    doc(db, "case", casaId),
+    (snap) => {
+      const remote = snap.data();
+  
+      if (
+        remote &&
+        remote.updatedAt !== AFFITTO.getState().updatedAt
+      ) {
+        AFFITTO.applyRemote(remote);
+      }
+    }
+  );
+
+  console.log("Sincronizzazione Firebase attiva!");
 </script>
   
 </body>
