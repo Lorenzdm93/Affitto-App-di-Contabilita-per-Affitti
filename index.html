@@ -2231,6 +2231,7 @@ render();
 </script>
 
 <script type="module">
+(async () => {
   // Importiamo Firebase dai server Google (CDN)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
@@ -2269,8 +2270,14 @@ render();
 
   // Authentication
   const auth = getAuth(app);
-  window.myAuth = auth;
+  //window.myAuth = auth;
   const provider = new GoogleAuthProvider();
+  
+  await auth.authStateReady();
+
+  if (!auth.currentUser) {
+    signInWithRedirect(auth, provider);
+  }
 
 
   // Recupera eventuale login Google appena completato
@@ -2327,7 +2334,8 @@ render();
 
 
   console.log("Sincronizzazione Firebase attiva!");
-
+  
+})();
 </script>
   
 </body>
