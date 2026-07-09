@@ -10,7 +10,7 @@ Registro affitti mensile, cassa comune e ripartizione spese per case condivise �
 
 ---
 
-## Cosa fa
+## Cosa fa 
 
 - **Panoramica** — la pagina iniziale: saldo delle due casse, chi è in regola / chi deve pagare questo mese, e un riquadro **"Da pagare"** che elenca ogni voce scoperta (anche i mesi precedenti in carry-over) con la data di scadenza e i **giorni di ritardo a oggi**, ordinati dal più arretrato. In fondo, ultimo prelievo e totale prelevato per persona.
 - **Registro** — la checklist mensile. Ogni voce si timbra come pagata con un timbro "✓ Pagato" datato. Navigazione mese per mese, barra di avanzamento, evidenza dei ritardi.
