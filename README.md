@@ -5,7 +5,9 @@
 Registro affitti mensile, cassa comune e ripartizione spese per case condivise — in un **singolo file HTML**, senza dipendenze, senza backend, senza tracciamento. Tutti i dati vivono nel browser (`localStorage`), con export/import JSON e CSV per il backup.
 
 <p align="center">
-  <a href="https://lorenzdm93.github.io/affitto/](https://lorenzdm93.github.io/Affitto-App-di-Contabilita-per-Affitti/"><strong>▶ Run it in your browser</strong></a>
+  <a href="https://lorenzdm93.github.io/Affitto-App-di-Contabilita-per-Affitti/">
+    <strong>▶ Run it in your browser</strong>
+  </a>
 </p>
 
 ---
