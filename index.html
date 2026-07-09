@@ -2230,32 +2230,50 @@ autoFreezePastMonths();
 render();
 </script>
 
-<button id="firebase-login" style="position:fixed;bottom:20px;right:20px;z-index:9999">
-  Login Google
-</button>
-  
+<!-- ============================================================
+     FIREBASE — Autenticazione Google (popup) + sincronizzazione
+     Nota: l'autenticazione funziona solo su dominio autorizzato
+     (es. lorenzdm93.github.io o localhost), NON aprendo il file
+     con doppio click (file://). Testa sulla pagina pubblicata.
+     ============================================================ -->
+<style>
+  #auth-gate{
+    position:fixed;inset:0;background:#F6F4EE;z-index:1000;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  #auth-gate .auth-card{
+    background:#fff;border:2px solid #14181F;border-radius:12px;
+    padding:38px 32px;max-width:380px;width:100%;text-align:center;
+  }
+  #auth-gate .auth-logo{font-size:46px;font-weight:900;letter-spacing:-2px;text-transform:uppercase;color:#14181F;line-height:1}
+  #auth-gate .auth-logo span{color:#C2342A}
+  #auth-gate .auth-sub{color:#6B7078;margin:12px 0 24px;font-size:14px;line-height:1.4}
+  #auth-gate .auth-btn{
+    border:2px solid #14181F;background:#14181F;color:#fff;border-radius:8px;
+    padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;width:100%;
+    font-family:inherit;letter-spacing:.02em;
+  }
+  #auth-gate .auth-btn:hover{background:#000}
+  #auth-gate .auth-btn:disabled{opacity:.55;cursor:default}
+  #auth-gate .auth-err{color:#C2342A;font-size:13px;margin-top:14px;font-weight:600;line-height:1.4}
+  #auth-badge{
+    position:fixed;bottom:14px;right:14px;z-index:1000;
+    align-items:center;gap:10px;background:#14181F;color:#fff;
+    border-radius:999px;padding:6px 6px 6px 14px;font-size:12px;font-weight:600;
+    box-shadow:0 4px 16px rgba(0,0,0,.22);font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  #auth-badge button{
+    border:none;background:#C2342A;color:#fff;border-radius:999px;
+    padding:5px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+  }
+  #auth-badge button:hover{background:#A62A22}
+</style>
+
 <script type="module">
-
-  // Firebase imports
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-
-  import { 
-    getFirestore, 
-    doc, 
-    setDoc, 
-    onSnapshot 
-  } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-  import {
-    getAuth,
-    GoogleAuthProvider,
-    signInWithRedirect,
-    onAuthStateChanged,
-    getRedirectResult,
-    setPersistence,
-    browserLocalPersistence
-  } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyD_bSp8vBCWq772iw8vSArRRPCE8-ftZxg",
@@ -2267,99 +2285,90 @@ render();
     measurementId: "G-RP1QH396F6"
   };
 
-
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-
-  console.log("Firebase è collegato con successo!");
-
-
-  // Authentication
   const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
 
+  // Mantiene la sessione tra i riavvii (niente più richieste continue)
   await setPersistence(auth, browserLocalPersistence);
 
-  const provider = new GoogleAuthProvider();
+  const casaId = "principale";
+  const docRef = doc(db, "case", casaId);
 
-  document.getElementById("firebase-login").onclick = () => {
-    console.log("Avvio login Google...");
-    signInWithRedirect(auth, provider);
+  // --- Schermata di login (creata via JS: se Firebase non carica, es. offline,
+  //     l'app resta comunque utilizzabile senza sincronizzazione) ---
+  const gate = document.createElement("div");
+  gate.id = "auth-gate";
+  gate.innerHTML =
+    '<div class="auth-card">' +
+      '<div class="auth-logo">AFFITTO<span>.</span></div>' +
+      '<p class="auth-sub">Accedi con il tuo account Google per sincronizzare i dati tra i dispositivi.</p>' +
+      '<button id="auth-login-btn" class="auth-btn">Accedi con Google</button>' +
+      '<div id="auth-error" class="auth-err"></div>' +
+    '</div>';
+  document.body.appendChild(gate);
+
+  const badge = document.createElement("div");
+  badge.id = "auth-badge";
+  badge.style.display = "none";
+  document.body.appendChild(badge);
+
+  const loginBtn = document.getElementById("auth-login-btn");
+  const errEl = document.getElementById("auth-error");
+
+  loginBtn.onclick = async () => {
+    errEl.textContent = "";
+    loginBtn.disabled = true;
+    try {
+      await signInWithPopup(auth, provider);   // <-- POPUP, non redirect
+    } catch (e) {
+      console.error("Login:", e);
+      let msg = "Accesso non riuscito (" + (e.code || e.message) + ").";
+      if (e.code === "auth/popup-blocked") msg = "Il popup è stato bloccato dal browser: consenti i popup per questo sito e riprova.";
+      if (e.code === "auth/unauthorized-domain") msg = "Dominio non autorizzato in Firebase (Authentication → Settings → Authorized domains).";
+      errEl.textContent = msg;
+    } finally {
+      loginBtn.disabled = false;
+    }
   };
-  
-  provider.setCustomParameters({
-    prompt: "select_account"
-  });
 
+  // Avvia la sincronizzazione UNA sola volta, dopo il primo login
+  let syncStarted = false;
+  function startSync() {
+    if (syncStarted) return;
+    syncStarted = true;
 
-  // Check result after Google redirect
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result && result.user) {
-        console.log("Login completato:", result.user.email);
-      } else {
-        console.log("Nessun redirect login trovato");
-      }
-    })
-    .catch((error) => {
-      console.error("Errore Google login:", error);
+    // Locale -> Firebase (a ogni modifica; scrive solo se autenticato)
+    AFFITTO.onChange(async (state) => {
+      if (!auth.currentUser) return;
+      try { await setDoc(docRef, state); }
+      catch (e) { console.error("Salvataggio su Firebase:", e); }
     });
 
-
-  // Current authentication state
-  onAuthStateChanged(auth, (user) => {
-
-    if (user) {
-      console.log("Utente autenticato:", user.email);
-    } else {
-      console.log("Nessun utente autenticato");
-    }
-
-  });
-
-  // Firestore
-  const db = getFirestore(app);
-
-  const casaId = "principale";
-
-
-  // Local -> Firebase
-  AFFITTO.onChange(async (state) => {
-
-    if (!auth.currentUser) {
-      console.log("Non autenticato: non salvo su Firebase");
-      return;
-    }
-
-    await setDoc(
-      doc(db, "case", casaId),
-      state
-    );
-
-  });
-
-
-  // Firebase -> Local
-  onSnapshot(
-    doc(db, "case", casaId),
-    (snap) => {
-
+    // Firebase -> Locale (quando arriva un aggiornamento da un altro dispositivo)
+    onSnapshot(docRef, (snap) => {
       const remote = snap.data();
-
-      if (
-        remote &&
-        remote.updatedAt !== AFFITTO.getState().updatedAt
-      ) {
+      if (remote && remote.updatedAt !== AFFITTO.getState().updatedAt) {
         AFFITTO.applyRemote(remote);
       }
+    }, (e) => console.error("Ascolto Firebase:", e));
+  }
 
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      gate.style.display = "none";
+      badge.style.display = "flex";
+      badge.innerHTML = '<span>' + (user.email || "connesso") + '</span><button id="auth-logout">Esci</button>';
+      document.getElementById("auth-logout").onclick = () => signOut(auth);
+      startSync();
+    } else {
+      gate.style.display = "flex";
+      badge.style.display = "none";
     }
-  );
-
-
-  console.log("Sincronizzazione Firebase attiva!");
-
-
+  });
 </script>
-  
+
 </body>
 </html>
